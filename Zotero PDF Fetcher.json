@@ -1,0 +1,767 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1si-7Q0xmgckjR8qG4yjfmPzXnAd8RZym",
+          "mode": "list",
+          "cachedResultName": "98_zoteroDB",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1si-7Q0xmgckjR8qG4yjfmPzXnAd8RZym"
+        },
+        "event": "folderUpdated"
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        288
+      ],
+      "id": "6996afc4-a66d-4289-a0c8-9dd96ac64027",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "eK5CtSdQakfXBAia",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "limit": 50,
+        "searchMethod": "query",
+        "queryString": "mimeType='application/vnd.google-apps.folder' and trashed=false",
+        "returnAll": "=",
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "={{ $json.id }}",
+            "mode": "id"
+          }
+        },
+        "options": {
+          "fields": [
+            "*"
+          ]
+        }
+      },
+      "id": "79546cc0-c050-4ec3-b00c-ad148b154112",
+      "name": "Search Subfolders",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -416,
+        288
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "eK5CtSdQakfXBAia",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "당신은 논문을 독자가 쉽게 이해하도록 재구성하는 전문 에디터입니다. 입력으로 제공된 텍스트는 “논문 PDF에서 추출된 원문”입니다. \n논문 title은 영어로 출력하세요. 이를 한국어로 쉽고 친근하게 각색하되, 아래 형식을 엄격히 준수하여 작성해 주세요.\n\n[스타일 가이드]\n1. (최우선 규칙) 숫자 명시 리스트 보존: 원문에 “N가지 / N steps / N findings” 등 개수가 명시되어 있다면, ‘4. 연구 내용 요약’ 섹션에서 해당 항목 개수를 반드시 N개로 맞추어 작성하세요. 항목을 합치거나 누락하지 마세요.\n2. 문체: 설명하듯 친근한 구어체로 작성하되 전문성을 유지하세요. 문장은 짧고 명확하게 끊고, 기술 용어는 영어로 병기합니다. \n3. 이모지 활용: 각 항목마다 ✔, 🔥, 💡, 🚀 등의 이모지를 적절히 사용하여 가독성을 높이세요.\n\n[출력 양식]\n\n# 💡 논문 분석 결과\n\n**논문 제목**: [반드시 영어 제목]\n**저자**: [저자명]\n**출처**: [저널/학회명, 연도]\n\n## 1. 기존 문제\n[기존 기술의 문제점, 한계점 기술]\n\n## 2. 해결하고자 하는 바\n[연구 목적, 목표 기술]\n\n## 3. 기존 논문/기술과의 차별성\n[제안 방법의 독창적 특징]\n\n## 4. 연구 내용 요약\n[핵심 방법론, 접근 방식 요약 - 원문의 N단계/N가지 리스트 반드시 유지]\n\n## 5. 결과 및 예상 효과\n[주요 결과, 성능 수치, 기대 효과]\n\n## 6. 실제 적용 가능 분야\n[적용 산업, 응용 분야]"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        448,
+        528
+      ],
+      "id": "3c4f64ae-4978-46ca-ad89-37295c35238d",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-pro-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        448,
+        720
+      ],
+      "id": "b25a3c26-2d67-4b03-a615-3a3a7120769e",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "S9XSsnp2RrOplrjC",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"title\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n\t\t\"content\": {\n          \"type\": \"string\"\n\t\t\t}\n\t\t}\t\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        720
+      ],
+      "id": "b77fca5b-a31e-4947-a11e-4e42c91cbd3e",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "const MAX_LENGTH = 2000;\nconst llmItems = $('Basic LLM Chain').all();\nconst results = [];\n\nfor (let i = 0; i < llmItems.length; i++) {\n  const llmOutput = llmItems[i].json.output || {};\n  const content = llmOutput.content || \"\";\n\n  const chunks = [];\n  for (let j = 0; j < content.length; j += MAX_LENGTH) {\n    chunks.push(content.slice(j, j + MAX_LENGTH));\n  }\n\n  results.push({\n    json: {\n      output: llmOutput,\n      content_chunks: chunks,\n      is_split: content.length > MAX_LENGTH\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        528
+      ],
+      "id": "2ffeb150-2962-48f2-9a27-c111555264ed",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 3,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "2ffd6c32-132d-4863-a89e-948cdcd7d603",
+              "leftValue": "={{ $json.is_split }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1152,
+        528
+      ],
+      "id": "87581362-95a4-486c-9536-ac21f14ed579",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst allResults = [];\n\nfunction parseRichText(text) {\n  if (!text) return [];\n  const parts = text.split(/(\\*\\*.*?\\*\\*)/g);\n  return parts.map(part => {\n    if (part === '') return null;\n    if (part.startsWith('**') && part.endsWith('**')) {\n      return { type: 'text', text: { content: part.slice(2, -2) }, annotations: { bold: true } };\n    }\n    return { type: 'text', text: { content: part } };\n  }).filter(item => item !== null);\n}\n\nfor (let idx = 0; idx < items.length; idx++) {\n  const chunks = items[idx].json.content_chunks || [];\n  const fullContent = chunks.join('');\n  const lines = fullContent.split('\\n');\n  const blocks = [];\n\n  for (let line of lines) {\n    line = line.trim();\n    if (line === '') continue;\n    if (line.startsWith('# ')) {\n      blocks.push({ object: 'block', type: 'heading_1', heading_1: { rich_text: parseRichText(line.replace('# ', '').substring(0, 2000)) } });\n    } else if (line.startsWith('## ')) {\n      blocks.push({ object: 'block', type: 'heading_2', heading_2: { rich_text: parseRichText(line.replace('## ', '').substring(0, 2000)) } });\n    } else if (line.startsWith('### ')) {\n      blocks.push({ object: 'block', type: 'heading_3', heading_3: { rich_text: parseRichText(line.replace('### ', '').substring(0, 2000)) } });\n    } else if (line.startsWith('- ') || line.startsWith('* ')) {\n      blocks.push({ object: 'block', type: 'bulleted_list_item', bulleted_list_item: { rich_text: parseRichText(line.replace(/^[-*] /, '').substring(0, 2000)) } });\n    } else if (/^\\d+\\.\\s/.test(line)) {\n      blocks.push({ object: 'block', type: 'numbered_list_item', numbered_list_item: { rich_text: parseRichText(line.replace(/^\\d+\\.\\s/, '').substring(0, 2000)) } });\n    } else {\n      for (let i = 0; i < line.length; i += 2000) {\n        blocks.push({ object: 'block', type: 'paragraph', paragraph: { rich_text: parseRichText(line.slice(i, i + 2000)) } });\n      }\n    }\n  }\n  allResults.push({ json: { blocks_array: blocks } });\n}\n\nreturn allResults;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        672
+      ],
+      "id": "82e7a9a8-c86c-4c8f-8dc5-d304c719189a",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.notion.com/v1/blocks/{{ $('title upload (POST)').item.json.id }}/children",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer ***"
+            },
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"children\": {{ JSON.stringify($json.blocks_array) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1600,
+        432
+      ],
+      "id": "62960a9c-a03e-43b2-85af-78b1429e078c",
+      "name": "summary (PATCH)"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.notion.com/v1/blocks/{{ $('title upload (POST)').item.json.id }}/children",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer ***"
+            },
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"children\": {{ JSON.stringify($json.blocks_array) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1600,
+        672
+      ],
+      "id": "5d681430-23cd-4c0b-add5-226de490fc6a",
+      "name": "summary(PATCH)"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -64,
+        528
+      ],
+      "id": "cc7220d8-ec78-4662-a61a-fe5826dd6255",
+      "name": "Download file",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "eK5CtSdQakfXBAia",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "modifiedTime",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dc0c2fe7-d611-4de7-bb48-fd2cbb1adce0",
+      "name": "Sort Folders",
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "modifiedTime",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0ecc625e-3fba-4ec7-822d-806995cd65c9",
+      "name": "Sort File",
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        256,
+        528
+      ],
+      "id": "aa3516f4-2f4b-47af-955a-2769417a7441",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "content": "## Step 1 Get the paper  \n- 구글 드라이브 지정 폴더 업데이터 확인(트리거)\n- 서브 폴더 확인\n- 업데이트 순으로 정렬\n- 파일 다운로드",
+        "height": 1008,
+        "width": 560
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -720,
+        128
+      ],
+      "typeVersion": 1,
+      "id": "72ef9792-06a1-4966-a516-a7f97024c78c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Step 2 Analysis the paper with AI \n- 텍스트 추출 from PDF file\n- 텍스트 내용 분석 with AI",
+        "height": 480,
+        "width": 512,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        208,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "da4200e6-09a0-4aeb-92bf-a58e86a59307",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Step 3 Results upload at Notion \n- 노션 데이터베이스 제목열에 논문 제목 업로드\n- 노션 데이터베이스 에 요약본 업로드",
+        "height": 512,
+        "width": 1056,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        736,
+        384
+      ],
+      "typeVersion": 1,
+      "id": "cc4e0138-3591-438f-b96c-a169e0150c7f",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/pages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer ***"
+            },
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"parent\": {\n    \"database_id\": \"2fbe04b2a5f980eeae12d5ab462d4c88\"\n  },\n  \"properties\": {\n    \"제목\": {\n      \"title\": [\n        {\n          \"text\": {\n            \"content\": \"{{ $json.output.title }}\"\n          }\n        }\n      ]\n    },\n    \"ID\": {\n      \"rich_text\": [\n        {\n          \"text\": {\n            \"content\": \"{{ $('If New File').item.json.id }}\"\n          }\n        }\n      ]\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        800,
+        528
+      ],
+      "id": "416b8b2b-0046-416d-894d-0f92366d2924",
+      "name": "title upload (POST)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/2fbe04b2a5f980eeae12d5ab462d4c88/query",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer ***"
+            },
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"filter\": {\n    \"property\": \"ID\",\n    \"rich_text\": {\n      \"equals\": \"{{ $json.id }}\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "id": "57690247-32a1-4de5-a763-d06bf32ca607",
+      "name": "Get Notion Pages",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -656,
+        1312
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 모든 파일에 대한 Notion 쿼리 결과와 원본 파일 데이터 매칭\nconst items = $input.all();\nconst sortFileItems = $('Sort File').all();\nconst results = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const notionResults = items[i].json.results || [];\n  const fileData = sortFileItems[i]?.json || {};\n\n  results.push({\n    json: {\n      ...fileData,\n      isNew: notionResults.length === 0\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "6cb8ab4f-c587-40b5-9855-2850d4cc6936",
+      "name": "Check Duplicate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        1312
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 3,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "dedup-cond-001",
+              "leftValue": "={{ $json.isNew }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "8ef90e38-a8de-4fc2-982b-4d39eb175f19",
+      "name": "If New File",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -176,
+        1312
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 중복 체크 (Dedup)\n- Notion DB 기존 페이지 조회\n- Google Drive 파일 ID로 중복 확인\n- 신규 파일만 처리 진행",
+        "height": 332,
+        "width": 1072,
+        "color": 5
+      },
+      "id": "f615b072-358a-4c47-8f53-66de6edca8d3",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        1152
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst allResults = [];\n\nfunction parseRichText(text) {\n  if (!text) return [];\n  const parts = text.split(/(\\*\\*.*?\\*\\*)/g);\n  return parts.map(part => {\n    if (part === '') return null;\n    if (part.startsWith('**') && part.endsWith('**')) {\n      return { type: 'text', text: { content: part.slice(2, -2) }, annotations: { bold: true } };\n    }\n    return { type: 'text', text: { content: part } };\n  }).filter(item => item !== null);\n}\n\nfor (let idx = 0; idx < items.length; idx++) {\n  const chunks = items[idx].json.content_chunks || [];\n  const fullContent = chunks.join('');\n  const lines = fullContent.split('\\n');\n  const blocks = [];\n\n  for (let line of lines) {\n    line = line.trim();\n    if (line === '') continue;\n    if (line.startsWith('# ')) {\n      blocks.push({ object: 'block', type: 'heading_1', heading_1: { rich_text: parseRichText(line.replace('# ', '').substring(0, 2000)) } });\n    } else if (line.startsWith('## ')) {\n      blocks.push({ object: 'block', type: 'heading_2', heading_2: { rich_text: parseRichText(line.replace('## ', '').substring(0, 2000)) } });\n    } else if (line.startsWith('### ')) {\n      blocks.push({ object: 'block', type: 'heading_3', heading_3: { rich_text: parseRichText(line.replace('### ', '').substring(0, 2000)) } });\n    } else if (line.startsWith('- ') || line.startsWith('* ')) {\n      blocks.push({ object: 'block', type: 'bulleted_list_item', bulleted_list_item: { rich_text: parseRichText(line.replace(/^[-*] /, '').substring(0, 2000)) } });\n    } else if (/^\\d+\\.\\s/.test(line)) {\n      blocks.push({ object: 'block', type: 'numbered_list_item', numbered_list_item: { rich_text: parseRichText(line.replace(/^\\d+\\.\\s/, '').substring(0, 2000)) } });\n    } else {\n      for (let i = 0; i < line.length; i += 2000) {\n        blocks.push({ object: 'block', type: 'paragraph', paragraph: { rich_text: parseRichText(line.slice(i, i + 2000)) } });\n      }\n    }\n  }\n  allResults.push({ json: { blocks_array: blocks } });\n}\n\nreturn allResults;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        432
+      ],
+      "id": "29c8692f-8ed2-4117-8202-978dea545cc3",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "trashed=false",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "={{ $json.id }}",
+            "mode": "id"
+          }
+        },
+        "options": {
+          "fields": [
+            "*"
+          ]
+        }
+      },
+      "id": "4d6c58ed-8c8b-4cee-ab4d-04429bd8645c",
+      "name": "Search files",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -656,
+        736
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "eK5CtSdQakfXBAia",
+          "name": "Google Drive account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search Subfolders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Subfolders": {
+      "main": [
+        [
+          {
+            "node": "Sort Folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "title upload (POST)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "summary(PATCH)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort Folders": {
+      "main": [
+        [
+          {
+            "node": "Search files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort File": {
+      "main": [
+        [
+          {
+            "node": "Get Notion Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "title upload (POST)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Notion Pages": {
+      "main": [
+        [
+          {
+            "node": "Check Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Duplicate": {
+      "main": [
+        [
+          {
+            "node": "If New File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If New File": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "summary (PATCH)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files": {
+      "main": [
+        [
+          {
+            "node": "Sort File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  }
+}
